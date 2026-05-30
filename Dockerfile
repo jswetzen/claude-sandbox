@@ -8,7 +8,7 @@ FROM docker.io/node:20.19.5-trixie-slim
 # see latest versions with make list-apt-versions
 RUN apt-get update && \
   apt-get install --no-install-recommends -y \
-  curl wget git git-lfs make zsh \
+  curl wget git git-lfs make zsh unzip \
   ca-certificates build-essential \
   # Chrome dependencies
   fonts-liberation libasound2 libatk-bridge2.0-0 libatk1.0-0 \
@@ -33,14 +33,19 @@ RUN ln -s /opt/google/chrome/chrome /usr/bin/chrome
 # Get uv
 RUN curl -LsSf https://astral.sh/uv/0.9.11/install.sh | sh && mv /root/.local/bin/uv* /usr/bin/
 
+# Get bun (for TypeScript)
+RUN curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash -s "bun-v1.1.38" && \
+    chmod 755 /usr/local/bin/bun
+
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 # Set display port for Chrome
 ENV DISPLAY=:99
 ENV SHELL="/bin/sh"
 
-RUN corepack enable
-RUN ENV=$HOME/.shrc pnpm add -g nushell
+RUN curl -fsSL https://get.pnpm.io/install.sh | SHELL=/bin/sh ENV=/dev/null sh -
+
+RUN bun install -g nushell
 
 # Install Claude Code via native installer, then move to system-wide location
 RUN curl -fsSL https://claude.ai/install.sh | bash && \
